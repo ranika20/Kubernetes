@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-PART_B_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+PART_B_DIR="${FORTUNE_API_PROJECT_DIR:-$SCRIPT_DIR}"
 VERSION_FILE="$PART_B_DIR/VERSION"
 API_DIR="$PART_B_DIR/api"
 K8S_DIR="$PART_B_DIR/k8s"
@@ -12,8 +13,8 @@ if [[ ! -f "$VERSION_FILE" ]]; then
 fi
 
 VERSION="$(tr -d '[:space:]' < "$VERSION_FILE")"
-if [[ "$VERSION" != "v1" && "$VERSION" != "v2" && "$VERSION" != "v3" ]]; then
-  echo "Unsupported version '$VERSION'. Set part-b/VERSION to v1, v2, or v3." >&2
+if [[ "$VERSION" != "v1" && "$VERSION" != "v2" && "$VERSION" != "v3" && "$VERSION" != "v4" ]]; then
+  echo "Unsupported version '$VERSION'. Set part-b/VERSION to v1, v2, v3, or v4." >&2
   exit 1
 fi
 

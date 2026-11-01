@@ -79,21 +79,30 @@ Observe how the number of available API Pods affects the service's capacity and 
 
 ### Change the API version
 
-Change the single line in [`VERSION`](./VERSION) to `v1`, `v2`, or `v3` and push the change to `main`. The GitHub Actions workflow then builds the API image and deploys it to the Ubuntu K3s server automatically. The server must have the repository's self-hosted GitHub Actions runner installed and online with the `ubuntu1` label.
+Change the single line in [`VERSION`](./VERSION) to `v1`, `v2`, `v3`, or `v4`. To automatically sync a Windows-local edit to Ubuntu, first create an SSH key if needed, authorize its public key on the server, then start the local watcher:
 
-To run the same deployment manually on Ubuntu:
-
-```bash
-bash part-b/deploy.sh
+```powershell
+ssh-keygen -t ed25519
+Get-Content "$env:USERPROFILE\.ssh\fortune-k8s.pub" | ssh ubuntu1 "umask 077; mkdir -p ~/.ssh; cat >> ~/.ssh/authorized_keys; chmod 700 ~/.ssh; chmod 600 ~/.ssh/authorized_keys"
+powershell -ExecutionPolicy Bypass -File .\part-b\watch-local-version.ps1
 ```
 
-The script builds the API image with that tag, embeds the same value as `APP_VERSION`, imports the image into K3s, updates the Deployment, and waits for the rollout. The frontend reads the version from each API response, so its displayed version changes automatically without rebuilding the frontend. Fortune text for each supported version is defined in `api/server.js` under `fortunesByVersion`. To add a version beyond v3, add its fortunes there, allow it in `deploy.sh`, and add a corresponding API test.
+Run `ssh-keygen` only if you do not already have `id_ed25519` keys; do not overwrite an existing key. The key setup prompts for the Ubuntu password once. The PowerShell watcher then copies the project version and API source to Ubuntu, installs/restarts the Ubuntu systemd watcher (which may prompt once for `sudo`), and monitors the local `VERSION` file. Keep its window open. On each save, it syncs the API source and version to Ubuntu; the systemd service builds the image, imports it into K3s, and rolls out the Deployment. No GitHub push is needed. Alternatively, edit the server copy through Remote-SSH; the systemd watcher detects that directly.
 
-### Configure automatic deployment
+Check watcher status and logs:
 
-In the GitHub repository, open **Settings → Actions → Runners → New self-hosted runner**, choose Linux x64, and follow GitHub's displayed commands on `ubuntu1`. Configure the runner with the additional label `ubuntu1`, install it as a service, and verify that it appears online in the repository settings. Keep the runner dedicated to this trusted repository and restrict who can push to `main`: self-hosted runners execute repository workflows on the server.
+```bash
+sudo systemctl status fortune-api-version-watcher
+sudo journalctl -u fortune-api-version-watcher -f
+```
 
-The runner service account must be able to run `sudo podman` and `sudo k3s` without an interactive password prompt, because workflows have no interactive terminal. Grant only the required commands using a carefully restricted sudoers rule, validate it with `visudo -c`, and run a workflow only after checking the repository's Actions permissions. Do not run untrusted pull-request workflows on this runner.
+To apply the selected version manually instead:
+
+```bash
+bash /home/ran/part-b/deploy.sh
+```
+
+The deployment script builds the API image with that tag, embeds the same value as `APP_VERSION`, imports the image into K3s, updates the Deployment, and waits for the rollout. The frontend reads the version from each API response, so its displayed version changes automatically without rebuilding the frontend. Fortune text for each supported version is defined in `api/server.js` under `fortunesByVersion`. To add a version beyond v4, add its fortunes there, allow it in `deploy.sh`, `watch-version.sh`, and `watch-local-version.ps1`, and add a corresponding API test.
 
 While the rollout is in progress, refresh the page rapidly. Responses can include both versions while old and new Pods coexist. After the rollout, click the cookie button to verify the version and fortune. To roll back to the previous Deployment revision:
 
