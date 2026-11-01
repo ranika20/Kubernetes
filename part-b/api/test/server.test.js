@@ -55,6 +55,27 @@ test('v2 fortunes identify the new version', async () => {
   }
 });
 
+test('v3 fortunes identify the new version', async () => {
+  const app = createApp({ version: 'v3' });
+  const v3Server = app.listen(0, '127.0.0.1');
+  await new Promise((resolve, reject) => {
+    v3Server.once('listening', resolve);
+    v3Server.once('error', reject);
+  });
+
+  try {
+    const response = await fetch(`http://127.0.0.1:${v3Server.address().port}/api/fortune`);
+    const body = await response.json();
+
+    assert.equal(body.version, 'v3');
+    assert.match(body.fortune, /^\[v3\]/);
+  } finally {
+    await new Promise((resolve, reject) => {
+      v3Server.close((error) => (error ? reject(error) : resolve()));
+    });
+  }
+});
+
 test('GET /healthz returns a healthy status', async () => {
   const response = await fetch(`${baseUrl}/healthz`);
   assert.equal(response.status, 200);

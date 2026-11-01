@@ -12,8 +12,8 @@ if [[ ! -f "$VERSION_FILE" ]]; then
 fi
 
 VERSION="$(tr -d '[:space:]' < "$VERSION_FILE")"
-if [[ "$VERSION" != "v1" && "$VERSION" != "v2" ]]; then
-  echo "Unsupported version '$VERSION'. Set part-b/VERSION to v1 or v2." >&2
+if [[ "$VERSION" != "v1" && "$VERSION" != "v2" && "$VERSION" != "v3" ]]; then
+  echo "Unsupported version '$VERSION'. Set part-b/VERSION to v1, v2, or v3." >&2
   exit 1
 fi
 

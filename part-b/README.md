@@ -79,15 +79,15 @@ Observe how the number of available API Pods affects the service's capacity and 
 
 ### Change the API version
 
-Change the single line in [`VERSION`](./VERSION) from `v1` to `v2`, then run the deployment script on the Ubuntu K3s server from any directory:
+Change the single line in [`VERSION`](./VERSION) to `v1`, `v2`, or `v3`, then run the deployment script on the Ubuntu K3s server from any directory:
 
 ```bash
 bash /home/ran/part-b/deploy.sh
 ```
 
-The script builds the API image with that tag, embeds the same value as `APP_VERSION`, imports the image into K3s, updates the Deployment, and waits for the rollout. The frontend reads the version from each API response, so its displayed version changes automatically without rebuilding the frontend. The fortune text for each supported version is defined in `api/server.js` under `fortunesByVersion`; add an entry there when adding a new version, and update the version validation in `deploy.sh` to allow it.
+The script builds the API image with that tag, embeds the same value as `APP_VERSION`, imports the image into K3s, updates the Deployment, and waits for the rollout. The frontend reads the version from each API response, so its displayed version changes automatically without rebuilding the frontend. Fortune text for each supported version is defined in `api/server.js` under `fortunesByVersion`. To add a version beyond v3, add its fortunes there, allow it in `deploy.sh`, and add a corresponding API test.
 
-While the rollout is in progress, refresh the page rapidly. Responses can include both v1 and v2 while old and new Pods coexist. After the rollout, click the cookie button to verify the version and fortune. To roll back to the previous Deployment revision:
+While the rollout is in progress, refresh the page rapidly. Responses can include both versions while old and new Pods coexist. After the rollout, click the cookie button to verify the version and fortune. To roll back to the previous Deployment revision:
 
 ```bash
 sudo k3s kubectl rollout undo deployment/fortune-api
