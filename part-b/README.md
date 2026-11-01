@@ -2,6 +2,16 @@
 
 A small Node.js/Express API and Nginx frontend deployed to Kubernetes. The browser requests `/api/fortune` from Nginx; Nginx forwards it to the internal `fortune-api` ClusterIP Service. Each response includes a random fortune, the serving Pod hostname, and its application version.
 
+## Run locally with one command
+
+With Docker Desktop running, open PowerShell in the project root and run:
+
+```powershell
+.\part-b\run-local.ps1
+```
+
+This builds and starts the API and frontend in Docker without requiring Kubernetes, then checks that the site and API respond. Open `http://localhost:30090`. The API version comes from `part-b\VERSION`; rerun the command after changing it. The script replaces only its own `fortune-api-local` and `fortune-web-local` containers.
+
 ## Prerequisites
 
 - Docker Desktop with Kubernetes enabled, or Minikube.
