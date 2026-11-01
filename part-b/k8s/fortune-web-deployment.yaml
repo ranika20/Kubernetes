@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fortune-web
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: fortune-web
+  template:
+    metadata:
+      labels:
+        app: fortune-web
+    spec:
+      containers:
+        - name: web
+          image: fortune-web:v1
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 80
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 2
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 25m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi

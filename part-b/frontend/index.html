@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>מפעל עוגיות המזל</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: system-ui, sans-serif;
+        background: #fff8e8;
+        color: #382b1b;
+      }
+
+      body {
+        display: grid;
+        min-height: 100vh;
+        margin: 0;
+        place-items: center;
+      }
+
+      main {
+        width: min(90vw, 36rem);
+        padding: 2rem;
+        border: 1px solid #e8d4a9;
+        border-radius: 1rem;
+        background: white;
+        box-shadow: 0 1rem 3rem #382b1b18;
+        text-align: center;
+      }
+
+      button {
+        padding: 0.8rem 1.2rem;
+        border: 0;
+        border-radius: 0.6rem;
+        background: #a44f20;
+        color: white;
+        font: inherit;
+        cursor: pointer;
+      }
+
+      button:disabled {
+        cursor: wait;
+        opacity: 0.7;
+      }
+
+      #fortune {
+        min-height: 3rem;
+        font-size: 1.3rem;
+        line-height: 1.6;
+      }
+
+      #metadata, #error {
+        color: #685b4a;
+        font-size: 0.9rem;
+      }
+
+      #error {
+        color: #a02020;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>🥠 מפעל עוגיות המזל</h1>
+      <p>לחצו כדי לגלות מה המזל הכין לכם.</p>
+      <button id="open-cookie" type="button">פתחו עוגייה</button>
+      <p id="fortune" aria-live="polite">העוגייה שלכם מחכה…</p>
+      <p id="metadata"></p>
+      <p id="error" role="alert"></p>
+    </main>
+    <script>
+      const button = document.querySelector('#open-cookie');
+      const fortune = document.querySelector('#fortune');
+      const metadata = document.querySelector('#metadata');
+      const error = document.querySelector('#error');
+
+      button.addEventListener('click', async () => {
+        button.disabled = true;
+        error.textContent = '';
+
+        try {
+          const response = await fetch('/api/fortune');
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+
+          const result = await response.json();
+          fortune.textContent = result.fortune;
+          metadata.textContent = `נענה על ידי Pod ${result.pod} · גרסה ${result.version}`;
+        } catch (requestError) {
+          error.textContent = `לא הצלחנו לפתוח עוגייה: ${requestError.message}`;
+        } finally {
+          button.disabled = false;
+        }
+      });
+    </script>
+  </body>
+</html>
