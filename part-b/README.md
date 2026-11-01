@@ -79,13 +79,21 @@ Observe how the number of available API Pods affects the service's capacity and 
 
 ### Change the API version
 
-Change the single line in [`VERSION`](./VERSION) to `v1`, `v2`, or `v3`, then run the deployment script on the Ubuntu K3s server from any directory:
+Change the single line in [`VERSION`](./VERSION) to `v1`, `v2`, or `v3` and push the change to `main`. The GitHub Actions workflow then builds the API image and deploys it to the Ubuntu K3s server automatically. The server must have the repository's self-hosted GitHub Actions runner installed and online with the `ubuntu1` label.
+
+To run the same deployment manually on Ubuntu:
 
 ```bash
-bash /home/ran/part-b/deploy.sh
+bash part-b/deploy.sh
 ```
 
 The script builds the API image with that tag, embeds the same value as `APP_VERSION`, imports the image into K3s, updates the Deployment, and waits for the rollout. The frontend reads the version from each API response, so its displayed version changes automatically without rebuilding the frontend. Fortune text for each supported version is defined in `api/server.js` under `fortunesByVersion`. To add a version beyond v3, add its fortunes there, allow it in `deploy.sh`, and add a corresponding API test.
+
+### Configure automatic deployment
+
+In the GitHub repository, open **Settings → Actions → Runners → New self-hosted runner**, choose Linux x64, and follow GitHub's displayed commands on `ubuntu1`. Configure the runner with the additional label `ubuntu1`, install it as a service, and verify that it appears online in the repository settings. Keep the runner dedicated to this trusted repository and restrict who can push to `main`: self-hosted runners execute repository workflows on the server.
+
+The runner service account must be able to run `sudo podman` and `sudo k3s` without an interactive password prompt, because workflows have no interactive terminal. Grant only the required commands using a carefully restricted sudoers rule, validate it with `visudo -c`, and run a workflow only after checking the repository's Actions permissions. Do not run untrusted pull-request workflows on this runner.
 
 While the rollout is in progress, refresh the page rapidly. Responses can include both versions while old and new Pods coexist. After the rollout, click the cookie button to verify the version and fortune. To roll back to the previous Deployment revision:
 

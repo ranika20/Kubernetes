@@ -1,0 +1,41 @@
+name: Deploy Fortune API
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - part-b/**
+      - .github/workflows/deploy-fortune-api.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fortune-api-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: [self-hosted, linux, x64, ubuntu1]
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Validate selected API version
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(tr -d '[:space:]' < part-b/VERSION)"
+          case "$version" in
+            v1|v2|v3) ;;
+            *)
+              echo "::error::Unsupported API version '$version' in part-b/VERSION"
+              exit 1
+              ;;
+          esac
+
+      - name: Build and deploy API
+        shell: bash
+        run: bash part-b/deploy.sh
