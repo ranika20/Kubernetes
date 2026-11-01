@@ -77,29 +77,24 @@ kubectl scale deployment/fortune-api --replicas=1
 
 Observe how the number of available API Pods affects the service's capacity and resilience.
 
-### Version rollout and rollback
+### Change the API version
 
-Build the v2 API image:
+Change the single line in [`VERSION`](./VERSION) from `v1` to `v2`, then run the deployment script on the Ubuntu K3s server from any directory:
 
-```powershell
-docker build --build-arg APP_VERSION=v2 -t fortune-api:v2 .\part-b\api
+```bash
+bash /home/ran/part-b/deploy.sh
 ```
 
-Edit `fortune-api-deployment.yaml`: change the image to `fortune-api:v2` and `APP_VERSION` to `v2`, then apply the manifest:
+The script builds the API image with that tag, embeds the same value as `APP_VERSION`, imports the image into K3s, updates the Deployment, and waits for the rollout. The frontend reads the version from each API response, so its displayed version changes automatically without rebuilding the frontend. The fortune text for each supported version is defined in `api/server.js` under `fortunesByVersion`; add an entry there when adding a new version, and update the version validation in `deploy.sh` to allow it.
 
-```powershell
-kubectl apply -f .\part-b\k8s\fortune-api-deployment.yaml
-kubectl rollout status deployment/fortune-api
+While the rollout is in progress, refresh the page rapidly. Responses can include both v1 and v2 while old and new Pods coexist. After the rollout, click the cookie button to verify the version and fortune. To roll back to the previous Deployment revision:
+
+```bash
+sudo k3s kubectl rollout undo deployment/fortune-api
+sudo k3s kubectl rollout status deployment/fortune-api
 ```
 
-While the rollout is in progress, refresh the page rapidly. Responses can include both v1 and v2 while old and new Pods coexist; each response identifies its Pod and version. When the rollout completes, use the browser to verify v2 fortunes, then roll back:
-
-```powershell
-kubectl rollout undo deployment/fortune-api
-kubectl rollout status deployment/fortune-api
-```
-
-The Deployment manifest is left at its initial v1 settings in this project; reapply it after the experiment if you changed it.
+To redeploy the version selected in `VERSION` after a rollback, run the deployment script again.
 
 ## Architecture
 
